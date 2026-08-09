@@ -29,7 +29,6 @@ the published version can never disagree.
 | `Preamble/` | Title page, abstract, acknowledgements, contents |
 | `Chapters/<Name>/` | One directory per chapter: its `.tex`, its `Figures/`, its `tables.tex` |
 | `Bibliographies/` | `.bib` sources |
-| `.thesis-agent/` | Contract for a publishing agent — data, never compiled. Delete if unused |
 
 Chapters use `\subfile`, so each one compiles on its own while you draft it.
 
@@ -72,6 +71,27 @@ Two things to know. Overleaf runs its own toolchain, so the `Makefile` is for lo
 builds only — anything the document actually needs belongs in `main.tex` or
 `document_settings.sty`. And `.thesis-agent/` is data, not markup: Overleaf ignores it and
 the document builds identically without it.
+
+## Publishing beyond Overleaf
+
+To turn this document into a queryable corpus, a wiki or a static site,
+[`thesis-agent`](https://github.com/c-energie/thesis-agent) scaffolds what it needs:
+
+```bash
+pip install thesis-agent
+export THESIS_REPO=$PWD
+thesis-agent init      # writes .thesis-agent/ and two authoring skills
+thesis-agent check     # reports what is still unfinished
+```
+
+That directory is **data, not markup** — Overleaf ignores it and the document builds
+identically without it. It is not shipped in this template on purpose: the engine owns the
+shape of its own contract, so scaffolding it from the engine means a template can never
+hand you a stale copy.
+
+`init` also writes two Claude skills into `.claude/skills/`, for the two files that are
+real work: the prompt that stops an agent misrepresenting your findings, and the adapter
+that teaches it your bespoke macros.
 
 ## The companion analysis repository
 
