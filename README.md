@@ -76,7 +76,7 @@ the document builds identically without it.
 ## The companion analysis repository
 
 Figures and tables come from
-[`analysis-template`](https://github.com/corson94/analysis-template). It takes this
+[`analysis-template`](https://github.com/c-energie/analysis-template). It takes this
 repository as a build input through the `DOCUMENT_REPO` environment variable and writes
 into `Chapters/<chapter>/Figures/`. It never reads your prose; this repository never
 imports its code. That is deliberate — either half is usable alone.
