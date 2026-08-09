@@ -1,0 +1,33 @@
+# ---- LaTeX build ----
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+# glossaries
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.ist
+
+# The built PDF. Overleaf builds its own; committing one guarantees a stale copy in
+# the repository and a merge conflict on every push. Remove this line if you have a
+# reason to version releases.
+main.pdf
+
+# ---- editors / os ----
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

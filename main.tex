@@ -1,0 +1,27 @@
+% ---------------------------------------------------------------------------
+% <<DOCUMENT_TITLE>>
+% <<AUTHOR>>
+%
+% Chapters are pulled in with \subfile, so each one also compiles on its own —
+% open Chapters/Example/example.tex and build just that while drafting.
+% ---------------------------------------------------------------------------
+\documentclass[12pt,a4paper,oneside]{report}
+% To use an institutional class instead, drop its .cls beside this file and swap
+% the line above, e.g.
+%     \documentclass[12pt,phd,a4paper,oneside]{ucl_thesis}
+% Most institutional classes are redistributed under their own terms, which is why
+% none is shipped here. See README.md.
+
+\usepackage{document_settings}
+\input{glossary_terms}
+
+\begin{document}
+
+\subfile{Preamble/preamble.tex}
+
+\subfile{Chapters/Example/example.tex}
+% Add a \subfile line per chapter, in reading order.
+
+\printbibliography
+
+\end{document}

@@ -1,0 +1,50 @@
+% ---------------------------------------------------------------------------
+% Shared packages, macros and settings for <<DOCUMENT_TITLE>>.
+%
+% Kept out of main.tex so the preamble stays readable and so each chapter's
+% \subfile build gets exactly the same environment as the full document.
+% ---------------------------------------------------------------------------
+\ProvidesPackage{document_settings}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{subfiles}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{amsmath, amssymb}
+\usepackage{siunitx}
+\usepackage[hidelinks]{hyperref}
+\usepackage[capitalise,nameinlink]{cleveref}
+\usepackage[acronym,toc]{glossaries}
+\usepackage[backend=biber,style=authoryear]{biblatex}
+
+% Pull a single tagged table out of a generated tables.tex with
+% \ExecuteMetaData[<file>]{<tag>} — see the analysis template's save_table.
+\usepackage{catchfilebetweentags}
+
+\addbibresource{Bibliographies/references.bib}
+\makeglossaries
+
+% --- figure resolution ------------------------------------------------------
+% Figures are referenced by BARE FILENAME (\includegraphics{example_scatter.png}),
+% never by path, because the analysis template writes them by name and any
+% publishing agent indexes them by name. \graphicspath is what makes that work.
+%
+% IT DOES NOT RECURSE: every directory holding figures must be listed explicitly,
+% and a directory that is missing here produces a "file not found" at build time
+% with no hint as to why. Add a line whenever you add a chapter.
+\graphicspath{%
+  {Chapters/Example/Figures/}%
+}
+
+% --- widths -----------------------------------------------------------------
+% One knob for figure width, so a change of mind is one edit rather than fifty.
+\newcommand{\width}{0.95\textwidth}
+
+% --- bespoke macros ---------------------------------------------------------
+% Any macro you define here that a publishing agent must understand also needs an
+% entry in .thesis-agent/macros.py — the flattener cannot see LaTeX definitions.
+% Example:
+%   \newcommand{\keyterm}[1]{\textsc{#1}}
