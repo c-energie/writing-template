@@ -69,19 +69,19 @@ git push overleaf main
 
 Two things to know. Overleaf runs its own toolchain, so the `Makefile` is for local
 builds only — anything the document actually needs belongs in `main.tex` or
-`document_settings.sty`. And `.thesis-agent/` is data, not markup: Overleaf ignores it and
+`document_settings.sty`. And `.doc-publish/` is data, not markup: Overleaf ignores it and
 the document builds identically without it.
 
 ## Publishing beyond Overleaf
 
 To turn this document into a queryable corpus, a wiki or a static site,
-[`thesis-agent`](https://github.com/c-energie/thesis-agent) scaffolds what it needs:
+[`doc-publish`](https://github.com/c-energie/doc-publish) scaffolds what it needs:
 
 ```bash
-pip install thesis-agent
-export THESIS_REPO=$PWD
-thesis-agent init      # writes .thesis-agent/ and two authoring skills
-thesis-agent check     # reports what is still unfinished
+pip install doc-publish
+export DOC_REPO=$PWD
+doc-publish init      # writes .doc-publish/ and two authoring skills
+doc-publish check     # reports what is still unfinished
 ```
 
 That directory is **data, not markup** — Overleaf ignores it and the document builds
@@ -97,7 +97,7 @@ that teaches it your bespoke macros.
 
 Figures and tables come from
 [`analysis-template`](https://github.com/c-energie/analysis-template). It takes this
-repository as a build input through the `DOCUMENT_REPO` environment variable and writes
+repository as a build input through the `DOC_REPO` environment variable and writes
 into `Chapters/<chapter>/Figures/`. It never reads your prose; this repository never
 imports its code. That is deliberate — either half is usable alone.
 

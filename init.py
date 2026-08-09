@@ -74,7 +74,7 @@ def main():
     print("\nNext:")
     print("  * main.tex uses the standard `report` class. To use an institutional one,")
     print("    drop its .cls beside main.tex and edit the \\documentclass line.")
-    print("  * Rewrite .thesis-agent/prompt.md before pointing any agent at this.")
+    print("  * Rewrite .doc-publish/prompt.md before pointing any agent at this.")
     print("  * Replace the Example chapter with your own, and update \\graphicspath")
     print("    in document_settings.sty when you add a chapter that holds figures.")
 
