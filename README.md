@@ -75,7 +75,7 @@ the document builds identically without it.
 ## Publishing beyond Overleaf
 
 To turn this document into a queryable corpus, a wiki or a static site,
-[`doc-publish`](https://github.com/corson94/doc-publish) scaffolds what it needs:
+[`doc-publish`](https://github.com/c-energie/doc-publish) scaffolds what it needs:
 
 ```bash
 pip install doc-publish
