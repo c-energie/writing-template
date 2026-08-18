@@ -75,8 +75,8 @@ def main():
     print("  * main.tex uses the standard `report` class. To use an institutional one,")
     print("    drop its .cls beside main.tex and edit the \\documentclass line.")
     print("  * Rewrite .doc-publish/prompt.md before pointing any agent at this.")
-    print("  * Replace the Example chapter with your own, and update \\graphicspath")
-    print("    in document_settings.sty when you add a chapter that holds figures.")
+    print("  * Replace the Example section with your own, and update \\graphicspath")
+    print("    in document_settings.sty when you add a section that holds figures.")
 
     Path(__file__).unlink()
     print("\nDeleted init.py.")

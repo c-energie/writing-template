@@ -23,14 +23,14 @@ the published version can never disagree.
 
 | Path | What it is |
 |---|---|
-| `main.tex` | Document root: class, then one `\subfile` per chapter in reading order |
+| `main.tex` | Document root: class, then one `\subfile` per section in reading order |
 | `document_settings.sty` | Packages, `\graphicspath`, bespoke macros |
 | `glossary_terms.tex` | Acronyms and glossary entries, all in one place |
 | `Preamble/` | Title page, abstract, acknowledgements, contents |
-| `Chapters/<Name>/` | One directory per chapter: its `.tex`, its `Figures/`, its `tables.tex` |
+| `Sections/<Name>/` | One directory per section: its `.tex`, its `Figures/`, its `tables.tex` |
 | `Bibliographies/` | `.bib` sources |
 
-Chapters use `\subfile`, so each one compiles on its own while you draft it.
+Sections use `\subfile`, so each one compiles on its own while you draft it.
 
 ## Three conventions the tooling depends on
 
@@ -98,7 +98,7 @@ that teaches it your bespoke macros.
 Figures and tables come from
 [`analysis-template`](https://github.com/c-energie/analysis-template). It takes this
 repository as a build input through the `DOC_REPO` environment variable and writes
-into `Chapters/<chapter>/Figures/`. It never reads your prose; this repository never
+into `Sections/<section>/Figures/`. It never reads your prose; this repository never
 imports its code. That is deliberate — either half is usable alone.
 
 ## What is not here

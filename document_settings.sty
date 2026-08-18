@@ -1,7 +1,7 @@
 % ---------------------------------------------------------------------------
 % Shared packages, macros and settings for <<DOCUMENT_TITLE>>.
 %
-% Kept out of main.tex so the preamble stays readable and so each chapter's
+% Kept out of main.tex so the preamble stays readable and so each section's
 % \subfile build gets exactly the same environment as the full document.
 % ---------------------------------------------------------------------------
 \ProvidesPackage{document_settings}
@@ -34,9 +34,9 @@
 %
 % IT DOES NOT RECURSE: every directory holding figures must be listed explicitly,
 % and a directory that is missing here produces a "file not found" at build time
-% with no hint as to why. Add a line whenever you add a chapter.
+% with no hint as to why. Add a line whenever you add a section.
 \graphicspath{%
-  {Chapters/Example/Figures/}%
+  {Sections/Example/Figures/}%
 }
 
 % --- widths -----------------------------------------------------------------
