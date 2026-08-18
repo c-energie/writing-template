@@ -19,6 +19,14 @@ the published version can never disagree.
 2. `python init.py` — fills in the title and author, then deletes itself.
 3. Build: `make` locally, or push to Overleaf (below).
 
+**Setting up the whole toolchain, or adapting a document you already have?** See
+[SETUP.md](SETUP.md) — the order the three repositories go together, what an existing
+thesis actually has to satisfy, both Overleaf workflows, and a troubleshooting table.
+
+Working with an AI assistant? [AGENTS.md](AGENTS.md) is read by Cursor, Copilot, Codex,
+Claude Code and the rest; [docs/setup-prompt.md](docs/setup-prompt.md) is a prompt to
+paste into any chat assistant that has no access to your files.
+
 ## Layout
 
 | Path | What it is |

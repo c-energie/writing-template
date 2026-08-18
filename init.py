@@ -74,7 +74,8 @@ def main():
     print("\nNext:")
     print("  * main.tex uses the standard `report` class. To use an institutional one,")
     print("    drop its .cls beside main.tex and edit the \\documentclass line.")
-    print("  * Rewrite .doc-publish/prompt.md before pointing any agent at this.")
+    print("  * To publish beyond the PDF: `doc-publish init` scaffolds .doc-publish/,")
+    print("    then rewrite its prompt.md before pointing any agent at this document.")
     print("  * Replace the Example section with your own, and update \\graphicspath")
     print("    in document_settings.sty when you add a section that holds figures.")
 
