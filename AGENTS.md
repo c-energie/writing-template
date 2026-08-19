@@ -2,8 +2,14 @@
 
 Instructions for any coding agent working in this repository — Claude Code, Cursor,
 GitHub Copilot, Codex, Windsurf, Aider, Zed, Gemini, or a chat assistant a human is
-pasting files into. This file is the portable, tool-neutral contract; `.claude/` holds
-Claude-specific extras that mirror it.
+pasting files into. This file is the portable, tool-neutral contract, and it is the one
+to keep current — anything tool-specific either points back here or is generated:
+
+- `CLAUDE.md` is a pointer, and nothing else. Claude Code does not read `AGENTS.md` by
+  name, so that file exists solely to import this one.
+- `.claude/skills/` is not in this template. `doc-publish init` writes two authoring
+  skills there — for `.doc-publish/prompt.md` and the macro adapter — unless it is run
+  with `--no-skills`.
 
 ## What this repository is
 
