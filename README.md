@@ -15,9 +15,41 @@ the published version can never disagree.
 
 ## Start here
 
-1. **Use this template** on GitHub to create your repository.
-2. `python init.py` — fills in the title and author, then deletes itself.
-3. Build: `make` locally, or push to Overleaf (below).
+This is a **GitHub template**, not a repository to fork or clone: the copy you write in
+is your own repository, with its own history and no link back here.
+
+**1. Create your repository.** On
+[c-energie/writing-template](https://github.com/c-energie/writing-template), press
+**Use this template → Create a new repository**. Name it after your document, and make it
+private if the work is unpublished — a template's visibility is not inherited.
+
+**2. Clone it and fill in the placeholders.**
+
+```bash
+git clone https://github.com/<you>/<your-document>.git
+cd <your-document>
+python init.py          # asks for title and author, rewrites them, deletes itself
+```
+
+`init.py` exists because "Use this template" copies files verbatim — it cannot substitute
+a title. Run it once, in **your** repository; it edits in place and then removes itself,
+so it is not something to run in a checkout of the template.
+
+**3. Prove it builds.** `make` locally, or push to Overleaf ([below](#overleaf)). Nothing
+else has to work yet.
+
+**4. Make it your document.** Replace `Sections/Example/` with a section of your own,
+then in two places:
+
+- `main.tex` — one `\subfile` line per section, in reading order.
+- `document_settings.sty` — one `\graphicspath` line per directory that holds figures.
+  It does **not** recurse, and a missing line is the usual first build failure.
+
+**5. Commit and push.** Everything past this point is optional and additive — Overleaf,
+the analysis repository and publishing can each be added months later, in any order.
+
+You need a LaTeX toolchain only for step 3; Overleaf builds without one. `init.py` is
+stdlib Python 3, no install.
 
 **Setting up the whole toolchain, or adapting a document you already have?** See
 [SETUP.md](SETUP.md) — the order the three repositories go together, what an existing
