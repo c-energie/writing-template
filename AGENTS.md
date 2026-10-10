@@ -121,3 +121,17 @@ Never present one as a result.
 `corpus_draft.md` keeps them — provenance, TODOs, contested numbers, supervisor questions
 — and is **for the author only**. Never paste draft-corpus content into anything outbound.
 `build/` and `data/` stay gitignored.
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues on this repo, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default labels, each named for its role: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root, created lazily. See `docs/agents/domain.md`.
