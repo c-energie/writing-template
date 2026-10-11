@@ -102,6 +102,7 @@ it; `setup-nested.sh` and `layout.toml` sync there and do nothing. SETUP.md has 
 make                  # build the PDF locally (Overleaf runs its own toolchain)
 make clean
 make test-setup       # test setup-nested.sh; no network, no TeX
+                      # CI runs it on Ubuntu and Windows, plus `shellcheck -s sh` on every *.sh
 
 # only if the publishing engine is installed:
 doc-publish doctor    # what is set up and what is not — start here
