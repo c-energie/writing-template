@@ -35,6 +35,10 @@ python init.py          # asks for title and author, rewrites them, deletes itse
 a title. Run it once, in **your** repository; it edits in place and then removes itself,
 so it is not something to run in a checkout of the template.
 
+To run it unattended, pass the answers as flags instead: `python init.py --title "…"
+--author "…"`. A flag skips its question. With no terminal to ask on, a left-out
+`--title` becomes "My Document" and a left-out `--author` stops the script.
+
 **3. Prove it builds.** `make` locally, or push to Overleaf ([below](#overleaf)). Nothing
 else has to work yet.
 
