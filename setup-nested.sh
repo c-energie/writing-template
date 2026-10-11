@@ -68,7 +68,7 @@ is_empty_dir() {
 # ---- arguments --------------------------------------------------------------------------
 
 FROM='' DIR='' OWNER='' NAME='' PUBLIC='' BACKEND=plotly
-CREATE_FLAGS=
+CREATE_FLAGS=''
 
 value() {
     [ $# -ge 2 ] || die "$1 needs a value"
@@ -221,9 +221,9 @@ case $MODE in
             rm -rf "$stage"
             die "gh repo create failed. If $OWNER/$NAME now exists on GitHub, adopt it with: sh setup-nested.sh --from https://github.com/$OWNER/$NAME.git"
         fi
-        mv "$stage/$NAME" "$ROOT/$DIR" ||
+        if ! { mv "$stage/$NAME" "$ROOT/$DIR" && rmdir "$stage"; }; then
             die "created $OWNER/$NAME but could not move its clone from $stage to $DIR"
-        rmdir "$stage" || die "moved the clone into $DIR but could not remove $stage; delete it, then rerun"
+        fi
         ;;
     adopt|restore)
         say "Cloning $FROM into $DIR ..."

@@ -48,7 +48,7 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      # The init.py guard SKIPs without Python, and a skip must not pass as green.
+      # The init.py guard SKIPs without Python, and that skip must not pass as green.
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
@@ -68,10 +68,12 @@ jobs:
             exit 1
           fi
 
+      # Any SKIP fails, except init.py having deleted itself: that is every repo stamped
+      # from this template, which keeps this workflow.
       - name: make test-setup
         run: |
           make test-setup | tee "$RUNNER_TEMP/test-setup.log"
-          if grep '^SKIP' "$RUNNER_TEMP/test-setup.log"; then
+          if grep '^SKIP' "$RUNNER_TEMP/test-setup.log" | grep -v 'init.py has already run'; then
             echo "::error::test-setup skipped a check"
             exit 1
           fi
@@ -81,8 +83,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # shellcheck is preinstalled on ubuntu-latest. -s sh holds every script to POSIX sh,
-      # shebang or not, and the default severity fails on info-level findings too.
+      # Pinned rather than the runner's own, whose version moves with the image and so
+      # moves the findings. -s sh holds every script to POSIX sh, shebang or not, and the
+      # default severity fails on info-level findings too.
+      - name: Install shellcheck
+        run: pipx install shellcheck-py==0.11.0.1
+
       - name: shellcheck -s sh
         run: |
           shellcheck --version
