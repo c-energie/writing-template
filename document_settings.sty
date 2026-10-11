@@ -39,6 +39,27 @@
   {Sections/Example/Figures/}%
 }
 
+% --- computed values --------------------------------------------------------
+% A number quoted in the prose is a result, so it is not typed by hand: the
+% analysis template's save_value writes it as a macro into the section's
+% values.tex (Sections/<Name>/values.tex), and the prose says \exampleValue
+% rather than a number copied out of a notebook that the next run will change.
+%
+% Each file is loaded here, once, in the preamble, so its macros are defined
+% globally and usable in any section, not only the one that owns the file. It
+% is loaded here and not in the section's .tex because this file is what every
+% \subfile build shares, so a section drafted on its own sees the same values.
+%
+% Add one line per section once it gains a values.tex. Like \graphicspath this
+% is hand-edited and nothing adds the line for you; save_value warns when it is
+% missing. \InputIfFileExists makes an absent file a no-op rather than an error,
+% so a line can go in before the first value is saved. A macro used in the prose
+% whose file is absent or unlisted still fails loudly, as an undefined control
+% sequence. That is the point: a missing number must not build quietly.
+%
+% Never edit a values.tex by hand. It is generated, and save_value rewrites it.
+\InputIfFileExists{Sections/Example/values.tex}{}{}
+
 % --- document class ---------------------------------------------------------
 % The front matter in Preamble/ has to build under report, book, an institutional
 % thesis class, article, or a journal class. Only the first three have \chapter,

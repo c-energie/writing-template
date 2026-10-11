@@ -40,13 +40,17 @@ inferred.
 2. **Figures are referenced by bare filename**, never by path:
    `\includegraphics{example_scatter.png}`. `\graphicspath` in the `.sty` resolves it.
    **It does not recurse** — every directory holding figures needs its own line there.
+   Computed numbers follow the same pattern: a section's `values.tex` is loaded only if
+   `document_settings.sty` has an `\InputIfFileExists{Sections/<Name>/values.tex}{}{}`
+   line for it, one per section, beside `\graphicspath`. `save_value` warns if the line is
+   missing; a macro used in the prose without it is an undefined control sequence.
 
 3. **Labels mirror filenames.** `example_scatter.png` ↔ `\label{Fig: example_scatter}`.
    That is how the analysis tooling knows a figure is already placed; break it and
    re-running a notebook appends a duplicate block.
 
-4. **Do not hand-edit `tables.tex`.** It is generated. Edits are overwritten on the next
-   save. Change the notebook that produced it.
+4. **Do not hand-edit `tables.tex` or `values.tex`.** Both are generated. Edits are
+   overwritten on the next save. Change the notebook that produced them.
 
 5. **Do not commit the built PDF.** It is stale by definition and conflicts on every push.
 
@@ -62,7 +66,7 @@ inferred.
 | `document_settings.sty` | Packages, `\graphicspath`, bespoke macros |
 | `glossary_terms.tex` | Acronyms and glossary entries (optional) |
 | `Preamble/` | Title page, abstract, acknowledgements, contents |
-| `Sections/<Name>/` | One directory per section: its `.tex`, `Figures/`, `tables.tex` |
+| `Sections/<Name>/` | One directory per section: its `.tex`, `Figures/`, `tables.tex`, `values.tex` |
 | `Bibliographies/` | `.bib` sources |
 | `.doc-publish/` | Publishing state and the document's answering rules. Data, not markup. |
 

@@ -48,6 +48,8 @@ then in two places:
 - `main.tex` — one `\subfile` line per section, in reading order.
 - `document_settings.sty` — one `\graphicspath` line per directory that holds figures.
   It does **not** recurse, and a missing line is the usual first build failure.
+  Beside it, one `\InputIfFileExists{Sections/<Name>/values.tex}{}{}` line per section
+  that has computed values — see [below](#four-conventions-the-tooling-depends-on).
 
 **5. Commit and push.** Everything past this point is optional and additive — Overleaf,
 the analysis repository and publishing can each be added months later, in any order.
@@ -71,17 +73,27 @@ paste into any chat assistant that has no access to your files.
 | `document_settings.sty` | Packages, `\graphicspath`, bespoke macros |
 | `glossary_terms.tex` | Acronyms and glossary entries, all in one place |
 | `Preamble/` | Title page, abstract, acknowledgements, contents |
-| `Sections/<Name>/` | One directory per section: its `.tex`, its `Figures/`, its `tables.tex` |
+| `Sections/<Name>/` | One directory per section: its `.tex`, its `Figures/`, its `tables.tex` and `values.tex` |
 | `Bibliographies/` | `.bib` sources |
 
 Sections use `\subfile`, so each one compiles on its own while you draft it.
 
-## Three conventions the tooling depends on
+## Four conventions the tooling depends on
 
 **Figures are referenced by bare filename.** `\includegraphics{example_scatter.png}`,
 never a path. `\graphicspath` in `document_settings.sty` resolves it, and the analysis
 repo writes figures by name. It **does not recurse** — every directory holding figures
 needs its own line, and one that is missing produces a build error with no hint why.
+
+**Computed numbers are loaded per section.** The analysis repo's `save_value` writes
+each number it computes as a macro into `Sections/<Name>/values.tex`, so the prose says
+`\exampleValue` rather than a value copied out of a notebook. The document only sees it
+if `document_settings.sty` has one `\InputIfFileExists{Sections/<Name>/values.tex}{}{}`
+line for that section, next to `\graphicspath` — hand-added, like the figure
+directories, and `save_value` warns when it is missing. The file is loaded once, in
+the preamble, so its macros work in any section; a missing file is not an error, but
+a macro used without its file is. **Never edit `values.tex` by hand** — it is
+regenerated on the next save.
 
 **Labels mirror filenames.** A figure saved as `example_scatter.png` is labelled
 `\label{Fig: example_scatter}`. That is how the analysis tooling knows this figure is
