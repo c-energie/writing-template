@@ -10,9 +10,11 @@ It asks for each answer in turn. To run it unattended, give them as flags instea
 (`python init.py --help`): a flag's value is used as-is, and with no terminal on stdin
 a left-out --title takes its default and a left-out --author stops the script.
 
-Nothing outside this directory is touched, and the script refuses to run twice.
+Nothing outside this directory is touched, nor anything inside a nested repo (see
+layout.toml), and the script refuses to run twice.
 """
 import argparse
+import os
 import re
 import sys
 from pathlib import Path
@@ -89,15 +91,35 @@ def parse_args(argv=None):
     return parser.parse_args(argv)
 
 
+def nested_dir():
+    """layout.toml's nested_dir, or None. A nested repo is a separate repo, and its own
+    placeholders are its own init.py's to fill: rewriting them from here would corrupt a
+    repo this one never commits. Read with a regex, because tomllib is Python 3.11+ and
+    this script promises any stdlib Python 3."""
+    layout = ROOT / "layout.toml"
+    if not layout.is_file():
+        return None
+    match = re.search(r"""^\s*nested_dir\s*=\s*(?:"([^"]*)"|'([^']*)')""",
+                      layout.read_text(encoding="utf-8", errors="replace"), re.MULTILINE)
+    return (ROOT / (match.group(1) or match.group(2))).resolve() if match else None
+
+
 def files():
-    for path in ROOT.rglob("*"):
-        if not path.is_file() or path.suffix not in SUFFIXES:
-            continue
-        if any(part in SKIP_DIRS for part in path.relative_to(ROOT).parts):
-            continue
-        if path.name == Path(__file__).name:
-            continue
-        yield path
+    nested = nested_dir()
+    for here, dirs, names in os.walk(ROOT):
+        here = Path(here)
+        # Pruned rather than filtered, so nothing inside is even read. A directory with
+        # its own .git (a directory, or a file for a worktree) is another repo, whether
+        # or not layout.toml names it.
+        dirs[:] = [d for d in dirs
+                   if d not in SKIP_DIRS
+                   and not (here / d / ".git").exists()
+                   and (here / d).resolve() != nested]
+        for name in names:
+            path = here / name
+            if (path.suffix in SUFFIXES and path.is_file()
+                    and name != Path(__file__).name):
+                yield path
 
 
 def main(argv=None):

@@ -39,6 +39,72 @@
   {Sections/Example/Figures/}%
 }
 
+% --- computed values --------------------------------------------------------
+% A number quoted in the prose is a result, so it is not typed by hand: the
+% analysis template's save_value writes it as a macro into the section's
+% values.tex (Sections/<Name>/values.tex), and the prose says \exampleValue
+% rather than a number copied out of a notebook that the next run will change.
+%
+% Each file is loaded here, once, in the preamble, so its macros are defined
+% globally and usable in any section, not only the one that owns the file. It
+% is loaded here and not in the section's .tex because this file is what every
+% \subfile build shares, so a section drafted on its own sees the same values.
+%
+% Add one line per section once it gains a values.tex. Like \graphicspath this
+% is hand-edited and nothing adds the line for you; save_value warns when it is
+% missing. \InputIfFileExists makes an absent file a no-op rather than an error,
+% so a line can go in before the first value is saved. A macro used in the prose
+% whose file is absent or unlisted still fails loudly, as an undefined control
+% sequence. That is the point: a missing number must not build quietly.
+%
+% Never edit a values.tex by hand. It is generated, and save_value rewrites it.
+\InputIfFileExists{Sections/Example/values.tex}{}{}
+
+% --- document class ---------------------------------------------------------
+% The front matter in Preamble/ has to build under report, book, an institutional
+% thesis class, article, or a journal class. Only the first three have \chapter,
+% and a \chapter* in the abstract stops an article build dead. So the front
+% matter asks this flag instead of assuming a chapter class. It is set once here
+% rather than tested in each subfile, so all of them agree on the answer.
+\newif\ifhaschapters
+\@ifundefined{chapter}{\haschaptersfalse}{\haschapterstrue}
+
+% Contents, list of figures, list of tables and the acronym list. A thesis wants
+% them and a paper does not, so the default follows the class: on with chapters,
+% off without. This is the one switch for all four. To override the default,
+% uncomment one of the two lines below it.
+\newif\ifshowcontents
+\ifhaschapters \showcontentstrue \else \showcontentsfalse \fi
+% \showcontentstrue
+% \showcontentsfalse
+
+% \frontmatterheading{<title>}: an unnumbered heading for front matter. With
+% chapters it is an unnumbered chapter listed in the contents. Without them it is
+% an unnumbered section, and is not listed: a paper's contents, if it prints one,
+% is for the body.
+\newcommand{\frontmatterheading}[1]{%
+  \ifhaschapters
+    \chapter*{#1}%
+    \addcontentsline{toc}{chapter}{#1}%
+  \else
+    \section*{#1}%
+  \fi}
+
+% frontmatterabstract: an unnumbered "Abstract" chapter with chapters. Without
+% them, the class's own abstract environment, which is what a paper class
+% formats and a journal expects. A class with neither falls back to a heading.
+\newenvironment{frontmatterabstract}{%
+  \ifhaschapters
+    \frontmatterheading{Abstract}%
+  \else
+    \@ifundefined{abstract}{\frontmatterheading{Abstract}}{\begin{abstract}}%
+  \fi
+}{%
+  \ifhaschapters\else
+    \@ifundefined{abstract}{}{\end{abstract}}%
+  \fi
+}
+
 % --- widths -----------------------------------------------------------------
 % One knob for figure width, so a change of mind is one edit rather than fifty.
 \newcommand{\width}{0.95\textwidth}

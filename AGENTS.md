@@ -25,8 +25,11 @@ analysis-template ──figures/tables──> THIS REPO ──ingest──> doc-
 ```
 
 This repository contains **no Python and no build system beyond a Makefile.** Do not add
-either. The two companion repositories locate this one through the `DOC_REPO` environment
-variable; nothing here imports their code and nothing here should.
+either. Two scripts are the deliberate exceptions, so do not remove either as a violation:
+`init.py`, which fills the placeholders once and deletes itself, and `setup-nested.sh`, a
+POSIX sh script that sets up the nested layout, with its test under `tests/`. The
+two companion repositories locate this one through the `DOC_REPO` environment variable;
+nothing here imports their code and nothing here should.
 
 ## Rules that matter
 
@@ -40,19 +43,28 @@ inferred.
 2. **Figures are referenced by bare filename**, never by path:
    `\includegraphics{example_scatter.png}`. `\graphicspath` in the `.sty` resolves it.
    **It does not recurse** — every directory holding figures needs its own line there.
+   Computed numbers follow the same pattern: a section's `values.tex` is loaded only if
+   `document_settings.sty` has an `\InputIfFileExists{Sections/<Name>/values.tex}{}{}`
+   line for it, one per section, beside `\graphicspath`. `save_value` warns if the line is
+   missing; a macro used in the prose without it is an undefined control sequence.
 
 3. **Labels mirror filenames.** `example_scatter.png` ↔ `\label{Fig: example_scatter}`.
    That is how the analysis tooling knows a figure is already placed; break it and
    re-running a notebook appends a duplicate block.
 
-4. **Do not hand-edit `tables.tex`.** It is generated. Edits are overwritten on the next
-   save. Change the notebook that produced it.
+4. **Do not hand-edit `tables.tex` or `values.tex`.** Both are generated. Edits are
+   overwritten on the next save. Change the notebook that produced them.
 
 5. **Do not commit the built PDF.** It is stale by definition and conflicts on every push.
 
 6. **Never describe a figure you have not looked at.** A caption plus a confident
    description is a fabricated result with a real label attached. If asked about a figure,
    read the actual image file.
+
+7. **If `layout.toml` exists, `nested_dir` is a separate repo with its own remote: commit
+   there, never here.** It is the analysis repo, nested inside this one and gitignored
+   here. `git status` here never shows its changes, so work "committed here" is simply not
+   committed; forcing it in with `git add -f` records an embedded repo, not its files.
 
 ## Layout
 
@@ -62,18 +74,34 @@ inferred.
 | `document_settings.sty` | Packages, `\graphicspath`, bespoke macros |
 | `glossary_terms.tex` | Acronyms and glossary entries (optional) |
 | `Preamble/` | Title page, abstract, acknowledgements, contents |
-| `Sections/<Name>/` | One directory per section: its `.tex`, `Figures/`, `tables.tex` |
+| `Sections/<Name>/` | One directory per section: its `.tex`, `Figures/`, `tables.tex`, `values.tex` |
 | `Bibliographies/` | `.bib` sources |
 | `.doc-publish/` | Publishing state and the document's answering rules. Data, not markup. |
+| `layout.toml` | Present only in the nested layout: names the nested repo's directory and remote |
+| `setup-nested.sh` | Creates, adopts or restores that nested repo. `tests/` holds its test |
 
-`\chapter` is a `report`/`book` class command and is used normally. The *directory* is
-`Sections/` because the tooling is document-agnostic; the two are unrelated.
+The template ships with `report`, so the example section opens with `\chapter`. The
+front matter in `Preamble/` builds under any class: it asks `\ifhaschapters` in
+`document_settings.sty` rather than calling `\chapter` itself. A paper on `article` or a
+journal class uses `\section` for its sections, and SETUP.md's "Writing a paper" section
+lists what changes. The *directory* is `Sections/` because the tooling is
+document-agnostic; that name has nothing to do with `\section`.
+
+### The nested layout
+
+A document repo may host its analysis repo inside it: `layout.toml` says
+`layout = "writing-hosts-analysis"`, and `nested_dir` is the analysis repo's directory,
+gitignored here (rule 7). `sh setup-nested.sh` creates it from `analysis-template`, adopts
+an existing one with `--from <url>`, or, run with no arguments on a fresh clone, restores
+it from `nested_remote`. Overleaf only sees tracked files, so the nested repo never reaches
+it; `setup-nested.sh` and `layout.toml` sync there and do nothing. SETUP.md has the rest.
 
 ## Commands
 
 ```bash
 make                  # build the PDF locally (Overleaf runs its own toolchain)
 make clean
+make test-setup       # test setup-nested.sh; no network, no TeX
 
 # only if the publishing engine is installed:
 doc-publish doctor    # what is set up and what is not — start here

@@ -48,6 +48,8 @@ then in two places:
 - `main.tex` — one `\subfile` line per section, in reading order.
 - `document_settings.sty` — one `\graphicspath` line per directory that holds figures.
   It does **not** recurse, and a missing line is the usual first build failure.
+  Beside it, one `\InputIfFileExists{Sections/<Name>/values.tex}{}{}` line per section
+  that has computed values — see [below](#four-conventions-the-tooling-depends-on).
 
 **5. Commit and push.** Everything past this point is optional and additive — Overleaf,
 the analysis repository and publishing can each be added months later, in any order.
@@ -71,17 +73,29 @@ paste into any chat assistant that has no access to your files.
 | `document_settings.sty` | Packages, `\graphicspath`, bespoke macros |
 | `glossary_terms.tex` | Acronyms and glossary entries, all in one place |
 | `Preamble/` | Title page, abstract, acknowledgements, contents |
-| `Sections/<Name>/` | One directory per section: its `.tex`, its `Figures/`, its `tables.tex` |
+| `Sections/<Name>/` | One directory per section: its `.tex`, its `Figures/`, its `tables.tex` and `values.tex` |
 | `Bibliographies/` | `.bib` sources |
+| `setup-nested.sh` | Sets up the nested layout, below; `tests/` holds its test |
+| `layout.toml` | Written by `setup-nested.sh`; absent until you choose the nested layout |
 
 Sections use `\subfile`, so each one compiles on its own while you draft it.
 
-## Three conventions the tooling depends on
+## Four conventions the tooling depends on
 
 **Figures are referenced by bare filename.** `\includegraphics{example_scatter.png}`,
 never a path. `\graphicspath` in `document_settings.sty` resolves it, and the analysis
 repo writes figures by name. It **does not recurse** — every directory holding figures
 needs its own line, and one that is missing produces a build error with no hint why.
+
+**Computed numbers are loaded per section.** The analysis repo's `save_value` writes
+each number it computes as a macro into `Sections/<Name>/values.tex`, so the prose says
+`\exampleValue` rather than a value copied out of a notebook. The document only sees it
+if `document_settings.sty` has one `\InputIfFileExists{Sections/<Name>/values.tex}{}{}`
+line for that section, next to `\graphicspath` — hand-added, like the figure
+directories, and `save_value` warns when it is missing. The file is loaded once, in
+the preamble, so its macros work in any section; a missing file is not an error, but
+a macro used without its file is. **Never edit `values.tex` by hand** — it is
+regenerated on the next save.
 
 **Labels mirror filenames.** A figure saved as `example_scatter.png` is labelled
 `\label{Fig: example_scatter}`. That is how the analysis tooling knows this figure is
@@ -100,6 +114,11 @@ the `.cls` beside `main.tex` and swap the `\documentclass` line.
 ```latex
 \documentclass[12pt,phd,a4paper,oneside]{ucl_thesis}
 ```
+
+Writing a paper on `article` or a journal class works too. The abstract,
+acknowledgements, contents and lists adapt to a class without chapters. The rest
+needs a few edits by hand, listed in
+[Writing a paper](SETUP.md#writing-a-paper-article-or-a-journal-class).
 
 ## Overleaf
 
@@ -144,6 +163,28 @@ Figures and tables come from
 repository as a build input through the `DOC_REPO` environment variable and writes
 into `Sections/<section>/Figures/`. It never reads your prose; this repository never
 imports its code. That is deliberate — either half is usable alone.
+
+## The analysis repo inside this one
+
+The analysis repo can also live inside this repo, as a **nested repo** in a gitignored
+subdirectory, so one directory holds the whole package. Choose it when the document and
+its analysis go together. Keep them side by side if one analysis repo feeds several
+documents.
+
+```bash
+sh setup-nested.sh                       # create one from analysis-template (needs gh)
+sh setup-nested.sh --from <url-or-path>  # or adopt an existing one; also how to move an
+                                         # existing pair into this layout
+```
+
+It records the layout in `layout.toml`. Commit `layout.toml` and `.gitignore` here, and
+commit everything inside the nested directory from inside it, in its own repo. On a fresh
+clone, `sh setup-nested.sh` with no arguments restores the nested repo from `layout.toml`.
+The script never writes `DOC_REPO`. Until the analysis repo reads it from `layout.toml`, set
+it in the nested repo's `.env`. Overleaf only sees tracked files, so the nested directory
+never reaches it; the script and `layout.toml` sync there and do nothing. On Windows, run
+it in Git Bash. The details are in
+[SETUP.md](SETUP.md#the-nested-layout-the-analysis-repo-inside-this-one).
 
 ## What is not here
 
