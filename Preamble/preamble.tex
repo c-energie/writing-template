@@ -10,9 +10,13 @@
 \subfile{Abstract.tex}
 \subfile{acknowledgements.tex}
 
-\tableofcontents
-\listoffigures
-\listoftables
-\printglossary[type=\acronymtype]
+% On by default with a chapter class, off without one. The switch is
+% \ifshowcontents in document_settings.sty.
+\ifshowcontents
+  \tableofcontents
+  \listoffigures
+  \listoftables
+  \printglossary[type=\acronymtype]
+\fi
 
 \end{document}

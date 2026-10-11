@@ -125,6 +125,48 @@ For the site and wiki, see [Publishing](#publishing).
 
 ---
 
+## Writing a paper (article or a journal class)
+
+The template ships with `report` because a thesis is the common case. A paper swaps the
+`\documentclass` line in `main.tex`, for example to `\documentclass[12pt,a4paper]{article}`.
+Anything else that breaks after that swap is listed below.
+
+**What adapts on its own.** `document_settings.sty` checks whether the class defines
+`\chapter`, and the front matter in `Preamble/` follows that answer:
+
+| | With chapters (`report`, `book`, a thesis class) | Without (`article`, most journal classes) |
+|---|---|---|
+| Abstract | Unnumbered chapter, listed in the contents | The class's `abstract` environment. Falls back to an unnumbered section if the class has none |
+| Acknowledgements | Unnumbered chapter, listed in the contents | Unnumbered section, not listed |
+| Contents, list of figures, list of tables, acronyms | Printed | Not printed |
+
+The last row is a switch, `\ifshowcontents`, in `document_settings.sty`. Its default
+follows the class. To override it either way, uncomment `\showcontentstrue` or
+`\showcontentsfalse` on the lines below it. A paper that does want a contents page needs
+only that one edit.
+
+**What you still do by hand:**
+
+- **The example section opens with `\chapter`.** It demonstrates the `report` default, so
+  under `article` it fails with `Undefined control sequence`. Change it to `\section`, or
+  delete the example. The same goes for your own sections: they open with `\section`, and
+  the `\section`s inside them become `\subsection`s.
+- **Acknowledgements come straight after the abstract.** Most journals want them at the
+  end. Move the `\subfile{acknowledgements.tex}` line out of `Preamble/preamble.tex` and
+  into `main.tex`, after the last section, with the path changed to
+  `Preamble/acknowledgements.tex`. That move is not automated, because where they go is
+  the journal's decision.
+- **A journal class usually brings its own front matter.** Many supply their own
+  `\title`, `\author`, `\maketitle`, affiliation and abstract macros, which take the
+  place of the template's. Where the class's instructions differ from
+  `Preamble/preamble.tex`, follow the class. Treat that file as the default, not as a
+  requirement.
+
+None of this touches the tooling's conventions. Bare-filename figures, labels mirroring
+filenames, `\graphicspath` and `Sections/<Name>/` work the same under any class.
+
+---
+
 ## Adapting an existing document
 
 If your thesis already exists — on Overleaf or anywhere else — you are not starting from

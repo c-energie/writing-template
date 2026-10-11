@@ -66,8 +66,12 @@ inferred.
 | `Bibliographies/` | `.bib` sources |
 | `.doc-publish/` | Publishing state and the document's answering rules. Data, not markup. |
 
-`\chapter` is a `report`/`book` class command and is used normally. The *directory* is
-`Sections/` because the tooling is document-agnostic; the two are unrelated.
+The template ships with `report`, so the example section opens with `\chapter`. The
+front matter in `Preamble/` builds under any class: it asks `\ifhaschapters` in
+`document_settings.sty` rather than calling `\chapter` itself. A paper on `article` or a
+journal class uses `\section` for its sections, and SETUP.md's "Writing a paper" section
+lists what changes. The *directory* is `Sections/` because the tooling is
+document-agnostic; that name has nothing to do with `\section`.
 
 ## Commands
 

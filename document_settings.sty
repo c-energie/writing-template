@@ -39,6 +39,51 @@
   {Sections/Example/Figures/}%
 }
 
+% --- document class ---------------------------------------------------------
+% The front matter in Preamble/ has to build under report, book, an institutional
+% thesis class, article, or a journal class. Only the first three have \chapter,
+% and a \chapter* in the abstract stops an article build dead. So the front
+% matter asks this flag instead of assuming a chapter class. It is set once here
+% rather than tested in each subfile, so all of them agree on the answer.
+\newif\ifhaschapters
+\@ifundefined{chapter}{\haschaptersfalse}{\haschapterstrue}
+
+% Contents, list of figures, list of tables and the acronym list. A thesis wants
+% them and a paper does not, so the default follows the class: on with chapters,
+% off without. This is the one switch for all four. To override the default,
+% uncomment one of the two lines below it.
+\newif\ifshowcontents
+\ifhaschapters \showcontentstrue \else \showcontentsfalse \fi
+% \showcontentstrue
+% \showcontentsfalse
+
+% \frontmatterheading{<title>}: an unnumbered heading for front matter. With
+% chapters it is an unnumbered chapter listed in the contents. Without them it is
+% an unnumbered section, and is not listed: a paper's contents, if it prints one,
+% is for the body.
+\newcommand{\frontmatterheading}[1]{%
+  \ifhaschapters
+    \chapter*{#1}%
+    \addcontentsline{toc}{chapter}{#1}%
+  \else
+    \section*{#1}%
+  \fi}
+
+% frontmatterabstract: an unnumbered "Abstract" chapter with chapters. Without
+% them, the class's own abstract environment, which is what a paper class
+% formats and a journal expects. A class with neither falls back to a heading.
+\newenvironment{frontmatterabstract}{%
+  \ifhaschapters
+    \frontmatterheading{Abstract}%
+  \else
+    \@ifundefined{abstract}{\frontmatterheading{Abstract}}{\begin{abstract}}%
+  \fi
+}{%
+  \ifhaschapters\else
+    \@ifundefined{abstract}{}{\end{abstract}}%
+  \fi
+}
+
 % --- widths -----------------------------------------------------------------
 % One knob for figure width, so a change of mind is one edit rather than fifty.
 \newcommand{\width}{0.95\textwidth}

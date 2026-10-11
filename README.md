@@ -101,6 +101,11 @@ the `.cls` beside `main.tex` and swap the `\documentclass` line.
 \documentclass[12pt,phd,a4paper,oneside]{ucl_thesis}
 ```
 
+Writing a paper on `article` or a journal class works too. The abstract,
+acknowledgements, contents and lists adapt to a class without chapters. The rest
+needs a few edits by hand, listed in
+[Writing a paper](SETUP.md#writing-a-paper-article-or-a-journal-class).
+
 ## Overleaf
 
 Overleaf's git bridge expects a repository whose root holds the document. This layout
