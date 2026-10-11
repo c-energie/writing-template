@@ -75,6 +75,8 @@ paste into any chat assistant that has no access to your files.
 | `Preamble/` | Title page, abstract, acknowledgements, contents |
 | `Sections/<Name>/` | One directory per section: its `.tex`, its `Figures/`, its `tables.tex` and `values.tex` |
 | `Bibliographies/` | `.bib` sources |
+| `setup-nested.sh` | Sets up the nested layout, below; `tests/` holds its test |
+| `layout.toml` | Written by `setup-nested.sh`; absent until you choose the nested layout |
 
 Sections use `\subfile`, so each one compiles on its own while you draft it.
 
@@ -161,6 +163,28 @@ Figures and tables come from
 repository as a build input through the `DOC_REPO` environment variable and writes
 into `Sections/<section>/Figures/`. It never reads your prose; this repository never
 imports its code. That is deliberate — either half is usable alone.
+
+## The analysis repo inside this one
+
+The analysis repo can also live inside this repo, as a **nested repo** in a gitignored
+subdirectory, so one directory holds the whole package. Choose it when the document and
+its analysis go together. Keep them side by side if one analysis repo feeds several
+documents.
+
+```bash
+sh setup-nested.sh                       # create one from analysis-template (needs gh)
+sh setup-nested.sh --from <url-or-path>  # or adopt an existing one; also how to move an
+                                         # existing pair into this layout
+```
+
+It records the layout in `layout.toml`. Commit `layout.toml` and `.gitignore` here, and
+commit everything inside the nested directory from inside it, in its own repo. On a fresh
+clone, `sh setup-nested.sh` with no arguments restores the nested repo from `layout.toml`.
+The script never writes `DOC_REPO`. Until the analysis repo reads it from `layout.toml`, set
+it in the nested repo's `.env`. Overleaf only sees tracked files, so the nested directory
+never reaches it; the script and `layout.toml` sync there and do nothing. On Windows, run
+it in Git Bash. The details are in
+[SETUP.md](SETUP.md#the-nested-layout-the-analysis-repo-inside-this-one).
 
 ## What is not here
 

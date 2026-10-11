@@ -69,6 +69,9 @@ choice affects your daily routine, so it is worth making deliberately.
 
 ### 3. The analysis repository (figures and tables)
 
+To keep the analysis repo inside this one instead of beside it, skip this step and see
+[The nested layout](#the-nested-layout-the-analysis-repo-inside-this-one).
+
 ```bash
 # "Use this template" on GitHub for analysis-template, then:
 git clone https://github.com/<you>/<your-analysis>.git
@@ -122,6 +125,99 @@ Two things surprise everyone here:
   that walks you through it.
 
 For the site and wiki, see [Publishing](#publishing).
+
+---
+
+## The nested layout: the analysis repo inside this one
+
+Step 3 puts the analysis repo beside this one. Instead, this document repo can be the
+**host repo** and the analysis repo a **nested repo** inside it, in a gitignored
+subdirectory:
+
+```
+my-thesis/              <- this repo, the one you open
+├── main.tex, Sections/ …
+├── layout.toml         <- records the layout; committed
+└── my-thesis-analysis/ <- the analysis repo: its own repo and remote, gitignored here
+```
+
+**When to choose it.** When the document and its analysis are one package of work, and you
+want one directory to open, one editor window and one agent session that sees both. Keep
+the two side by side instead if one analysis repo feeds several documents. If you would
+rather open the analysis repo and nest the document inside it, that is the reverse layout,
+`analysis-hosts-writing`, and `analysis-template` sets it up.
+
+### The one command
+
+From the root of this repo, in a POSIX shell (on Windows, Git Bash, which comes with Git):
+
+```bash
+sh setup-nested.sh                       # create a new analysis repo from analysis-template
+sh setup-nested.sh --from <url-or-path>  # or adopt one you already have
+```
+
+Creating needs `git`, `uv` and the GitHub CLI, signed in (`gh auth login`). It makes
+`<owner>/<this repo's name>-analysis`, private, owned by whoever owns this repo's `origin`
+on GitHub (else by you), and clones it into a directory of the same name. `--name`,
+`--owner`, `--dir` and `--public` change those; `--backend matplotlib` replaces the default
+`plotly`. Anything after `--` is passed to the analysis repo's `init.py`, which otherwise
+asks its questions at the terminal. Adopting needs only `git` and `uv`, and takes anything
+`git clone` takes. The source is cloned, never moved or modified.
+
+In order, the script clones the repo, adds `/<dir>/` to `.gitignore`, writes `layout.toml`,
+runs the analysis repo's `init.py` if it still has one, and runs `uv sync` there. It
+refuses before changing anything if a prerequisite is missing, if the directory exists and
+is not empty, or if `layout.toml` already names a different directory.
+
+**Already have a document repo and an analysis repo side by side?** Run the same command
+in the document repo, with `--from` pointing at the analysis repo's GitHub URL. That is
+the whole move. The old checkout is left where it was. Delete it once anything uncommitted
+in it is pushed, so you do not keep editing a stale copy.
+
+Once the repo exists there is no rollback, because on GitHub it already does. If `init.py`
+or `uv sync` fails, the script prints the command to rerun. Rerunning the script itself is
+safe too: it finds the directory, changes nothing, and says what is still to do.
+
+### What to commit where
+
+- **Here:** `layout.toml` and `.gitignore`, once. Nothing from inside the nested
+  directory, ever. `git status` here does not show it, and that is the point.
+- **There:** everything inside the nested directory, from inside it (`cd <dir>`, then
+  `git commit` and `git push` as usual). The changes `init.py` makes are the first
+  commit there.
+- Figures and tables the analysis repo writes into `Sections/` are this repo's files, as
+  in any layout: commit them here.
+
+Agents read the same rule in `AGENTS.md`: if `layout.toml` exists, `nested_dir` is a
+separate repo, so commit there, never here.
+
+### On a fresh clone
+
+A clone of this repo arrives without the nested directory, because it is gitignored. Run
+`sh setup-nested.sh` with no arguments. It reads `nested_dir` and `nested_remote` from
+`layout.toml`, clones the analysis repo back into place and syncs its venv. If you chose
+`matplotlib`, pass `--backend matplotlib` again. If the directory is already there, the
+script says so and exits.
+
+`nested_remote` is the clone's `origin`. If you adopted from a local path, that path is
+what gets recorded, and no other machine can restore from it. Push the analysis repo to
+GitHub and put that URL in `layout.toml`.
+
+### `DOC_REPO` in the nested layout
+
+The analysis repo still finds this one through `DOC_REPO`, which here is simply the parent
+directory. `setup-nested.sh` never writes it. The analysis repo is to derive it from
+this repo's `layout.toml`
+([analysis-template#11](https://github.com/c-energie/analysis-template/issues/11)). Until
+that lands, the analysis repo's `.env` still has to hold it. When its `init.py` asks for
+the document repo, answer with this repo's absolute path (the script prints it). If it did
+not ask, add `DOC_REPO=<absolute path to this repo>` to `<dir>/.env` yourself. That file is
+gitignored in the analysis repo, because the path differs per machine.
+
+### Overleaf
+
+Overleaf only sees tracked files, so the nested directory never reaches it.
+`setup-nested.sh` and `layout.toml` sync there and do nothing, like the `Makefile`.
 
 ---
 
