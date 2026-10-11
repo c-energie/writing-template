@@ -150,7 +150,8 @@ Everything else adapts to you:
   no glossary at all that is fine.
 - **Your bibliography stays where it is.** The engine reads your own
   `\addbibresource{...}` or `\bibliography{...}` declarations. No particular directory is
-  required.
+  required. With BibTeX and subfiles, see [Subfiles](#subfiles) for
+  standalone builds.
 - **Your settings file keeps its name.** Every `.sty` at the repository root is scanned
   for `\graphicspath` and macro definitions.
 - **Your document class is untouched.** `report`, `book`, an institutional `.cls` —
@@ -204,6 +205,59 @@ line, and a missing one produces a "file not found" at build time with no hint w
 
 You do not have to move everything at once. Move one section, prove a figure lands, then
 do the rest.
+
+### Subfiles
+
+A file pulled in with `\subfile` also compiles on its own. With subfiles more than one
+level deep — a chapter file that includes section files — that holds at every level only
+if the first two things below are right, and a document converted from `\include` needs
+the third. Each costs several failed builds to find.
+
+**Point every subfile at the root.** At any depth, the option in
+`\documentclass[...]{subfiles}` is the path to the root `.tex`, never to the file that
+includes it. A section file under `Chapters/Ch1/Sec/` takes
+`\documentclass[../../../main.tex]{subfiles}`, not `[../ch1.tex]`. Pointing at the parent
+still compiles inside the full document, so nothing looks wrong until the section is built
+on its own:
+
+```
+! LaTeX Error: Option clash for document class subfiles.
+```
+
+`\subfile{...}` paths are the other way round: they stay relative to the file doing the
+including.
+
+**BibTeX bibliographies in standalone builds.** Only for documents using
+`\bibliography{...}`. The template uses biblatex (`\addbibresource`), which does not hit
+this, so skip it unless you kept a BibTeX setup. The obvious fixes all fail:
+
+- No bibliography code in subfiles: every citation in a standalone build is undefined.
+- An `\ifSubfilesClassLoaded{\bibliography{...}}{}` in each subfile: a chapter file built on
+  its own runs its sections' copies too, and BibTeX stops with
+  `Illegal, another \bibdata command`.
+- One `\AtEndDocument{\ifSubfilesClassLoaded{\bibliography{\subfix{references}}}{}}` in the
+  preamble: BibTeX gets `references` instead of `../../references`, and citations are
+  undefined again.
+
+What works at every level is no bibliography code in any subfile, and this in a `.sty` at
+the repository root, loaded by your root `.tex` after `\usepackage{subfiles}`:
+
+```latex
+\edef\thesisbibfile{\subfix{references}}   % resolved while the preamble loads
+\AtEndDocument{\ifSubfilesClassLoaded{\bibliography{\thesisbibfile}}{}}
+```
+
+The `\edef` is the point. `\subfix` has to expand while the root preamble is loading, when
+it knows the path from the file being built back to the root. Left to expand inside
+`\AtEndDocument`, it resolves relative to the subfile and gives the wrong path — the third
+failure above. `references` is your own `.bib`, relative to the repository root and without
+the extension. `\bibliographystyle` stays in your preamble, and the full document keeps
+its own `\bibliography{...}`; the hook does nothing there.
+
+**`\subfile` does not start a new page; `\include` does.** A document converted from
+`\include` that relied on that break — an `\addcontentsline` between two chapters, say —
+needs an explicit `\clearpage` before it. Without one the contents entry gets the page the
+previous chapter ended on.
 
 ---
 
