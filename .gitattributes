@@ -1,0 +1,4 @@
+# Shell scripts stay LF on every checkout. Git for Windows with core.autocrlf would
+# otherwise hand Git Bash a CRLF setup-nested.sh, and sh fails on the first line with
+# "$'\r': command not found".
+*.sh text eol=lf

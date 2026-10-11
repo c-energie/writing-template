@@ -5,11 +5,12 @@
 #   make            build the PDF
 #   make clean      remove build intermediates, keep the PDF
 #   make distclean  remove the PDF too
+#   make test-setup test setup-nested.sh (POSIX sh, no network; not part of the build)
 
 MAIN    = main
 LATEXMK = latexmk -pdf -interaction=nonstopmode -halt-on-error
 
-.PHONY: all clean distclean
+.PHONY: all clean distclean test-setup
 
 all: $(MAIN).pdf
 
@@ -23,3 +24,8 @@ clean:
 
 distclean: clean
 	rm -f $(MAIN).pdf
+
+# sh, not bash: the script promises POSIX sh, and on Linux sh is usually dash, which
+# rejects the bashisms bash would let through.
+test-setup:
+	sh tests/setup-nested.test.sh
