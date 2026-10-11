@@ -10,6 +10,10 @@ to keep current — anything tool-specific either points back here or is generat
 - `.claude/skills/` is not in this template. `doc-publish init` writes two authoring
   skills there — for `.doc-publish/prompt.md` and the macro adapter — unless it is run
   with `--no-skills`.
+- `.claude/settings.json` enables Claude Code's `project-workspace@c-energie` plugin,
+  auto-updating: the document-workspace setup and adapt skills, e.g.
+  `/project-workspace:adapt-existing-document`. They expect to run from the workspace root (the
+  directory holding `workspace.toml`), not from inside this repo.
 
 ## What this repository is
 
