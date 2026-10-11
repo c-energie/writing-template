@@ -56,6 +56,9 @@ python init.py          # fills in title and author, then deletes itself
 make                    # optional: prove it builds locally
 ```
 
+`init.py` asks for each value. To skip the questions, give them as flags:
+`python init.py --title "…" --author "…"`.
+
 You now have a document that compiles. Everything else is optional and additive — you can
 stop here and just write, and the two other repositories can be added months later.
 
@@ -76,6 +79,8 @@ uv sync --extra dev --extra notebooks --extra plotly
 
 `init.py` asks for the path to your document repo and writes it to `.env` as `DOC_REPO`.
 That file is gitignored, because it is a per-machine path rather than a project setting.
+To skip the questions, give the answers as flags: `--distribution`, `--author`,
+`--doc-repo` and `--backend` (`python init.py --help` lists them).
 
 Prove the wiring before you write any analysis of your own:
 
