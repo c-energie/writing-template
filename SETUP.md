@@ -336,6 +336,7 @@ mkdir -p Sections/Introduction/Figures
 git mv chapters/introduction.tex Sections/Introduction/
 # then update the \subfile / \input line in your root .tex,
 # and add Sections/Introduction/Figures/ to \graphicspath
+# and, beside it, \InputIfFileExists{Sections/Introduction/values.tex}{}{}
 ```
 
 `\graphicspath` **does not recurse** — every directory holding figures needs its own
