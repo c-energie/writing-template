@@ -67,8 +67,8 @@ is_empty_dir() {
 
 # ---- arguments --------------------------------------------------------------------------
 
-FROM= DIR= OWNER= NAME= PUBLIC= BACKEND=plotly
-CREATE_FLAGS=
+FROM='' DIR='' OWNER='' NAME='' PUBLIC='' BACKEND=plotly
+CREATE_FLAGS=''
 
 value() {
     [ $# -ge 2 ] || die "$1 needs a value"
@@ -221,8 +221,9 @@ case $MODE in
             rm -rf "$stage"
             die "gh repo create failed. If $OWNER/$NAME now exists on GitHub, adopt it with: sh setup-nested.sh --from https://github.com/$OWNER/$NAME.git"
         fi
-        mv "$stage/$NAME" "$ROOT/$DIR" && rmdir "$stage" ||
+        if ! { mv "$stage/$NAME" "$ROOT/$DIR" && rmdir "$stage"; }; then
             die "created $OWNER/$NAME but could not move its clone from $stage to $DIR"
+        fi
         ;;
     adopt|restore)
         say "Cloning $FROM into $DIR ..."
@@ -240,6 +241,7 @@ REMOTE=$(git -C "$ROOT/$DIR" remote get-url origin 2>/dev/null) || REMOTE=$FROM
 # Step 1: gitignore the nested repo, once.
 entry=/$DIR/
 if ! { [ -f "$GITIGNORE" ] && tr -d '\r' < "$GITIGNORE" | grep -qxF "$entry"; }; then
+    # shellcheck disable=SC2094 # tail reads the last byte before anything is appended
     {
         # A file with no final newline would glue the entry onto its last line.
         if [ -s "$GITIGNORE" ] && [ -n "$(tail -c 1 "$GITIGNORE")" ]; then

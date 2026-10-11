@@ -37,6 +37,7 @@ snapshot() {
 same() { [ "$1" = "$2" ]; }
 fails() { ! "$@"; }
 cloned() { [ -e "$1/.git" ] && [ -f "$1/pyproject.toml" ]; }
+nothing() { [ $# -eq 1 ] && [ ! -e "$1" ]; }   # nothing GLOB: the glob matched no file
 count_entry() { tr -d '\r' < "$1/.gitignore" | grep -cxF "$2"; }
 
 # ---- stubs ------------------------------------------------------------------------------
@@ -161,7 +162,7 @@ check "create: owner from origin, private, from the template" grep -qx \
     'repo create someone/paper-analysis --template c-energie/analysis-template --private --clone' \
     "$WORK/gh.log"
 check "create: --dir need not match --name" test -f "$WORK/paper/analysis/pyproject.toml"
-check "create: no scratch directory left" same "$(ls -A "$WORK/paper" | grep '^\.setup-nested')" ""
+check "create: no scratch directory left" nothing "$WORK/paper"/.setup-nested.*
 check "create: records nested_dir" grep -qx 'nested_dir = "analysis"' "$WORK/paper/layout.toml"
 
 # ---- refusals ---------------------------------------------------------------------------
@@ -210,6 +211,7 @@ else
     nested_before=$(snapshot "$D/nested-analysis")
     unnamed_before=$(snapshot "$D/unnamed")
 
+    # shellcheck disable=SC2016 # $1 and $2 are the inner sh's arguments
     check "init.py: runs" sh -c 'cd "$1" && "$2" init.py --title T --author A < /dev/null > /dev/null' \
         sh "$D" "$python"
     check "init.py: fills the document's own placeholders" grep -qx 'T by A' "$D/main.tex"

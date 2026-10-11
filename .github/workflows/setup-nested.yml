@@ -1,0 +1,95 @@
+# setup-nested.sh promises POSIX sh on Linux and Git Bash alike, and nothing else runs its
+# test: every push to main and every PR that touches it runs `make test-setup` on Ubuntu
+# (where sh is dash) and on Windows under Git Bash, plus shellcheck over every tracked *.sh.
+#
+# Windows is the leg that matters. It checks out with core.autocrlf=true, as Git for
+# Windows does by default, so a *.sh that lost its `eol=lf` rule in .gitattributes arrives
+# CRLF and fails here rather than on someone's laptop with "$'\r': command not found".
+#
+# No secrets and no network beyond checkout and the tools: the test stubs gh and uv on PATH
+# and adopts a local repo with --from.
+name: setup-nested
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**.sh'
+      - Makefile
+      - .gitattributes
+      - init.py
+      - .github/workflows/setup-nested.yml
+  pull_request:
+    paths:
+      - '**.sh'
+      - Makefile
+      - .gitattributes
+      - init.py
+      - .github/workflows/setup-nested.yml
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test-setup (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash   # Git Bash on Windows
+    steps:
+      - name: Check out as Git for Windows does by default
+        if: runner.os == 'Windows'
+        run: git config --global core.autocrlf true
+
+      - uses: actions/checkout@v4
+
+      # The init.py guard SKIPs without Python, and that skip must not pass as green.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install make
+        if: runner.os == 'Windows'
+        run: command -v make || choco install make --no-progress -y
+
+      - name: Every tracked *.sh is LF, in the index and the checkout
+        run: |
+          eol=$(git ls-files --eol -- '*.sh')
+          printf '%s\n' "$eol"
+          [ -n "$eol" ] || { echo "::error::no tracked *.sh found"; exit 1; }
+          bad=$(printf '%s\n' "$eol" | awk '$1 != "i/lf" || $2 != "w/lf"')
+          if [ -n "$bad" ]; then
+            echo "::error::*.sh not LF; check '*.sh text eol=lf' in .gitattributes"
+            exit 1
+          fi
+
+      # Any SKIP fails, except init.py having deleted itself: that is every repo stamped
+      # from this template, which keeps this workflow.
+      - name: make test-setup
+        run: |
+          make test-setup | tee "$RUNNER_TEMP/test-setup.log"
+          if grep '^SKIP' "$RUNNER_TEMP/test-setup.log" | grep -v 'init.py has already run'; then
+            echo "::error::test-setup skipped a check"
+            exit 1
+          fi
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pinned rather than the runner's own, whose version moves with the image and so
+      # moves the findings. -s sh holds every script to POSIX sh, shebang or not, and the
+      # default severity fails on info-level findings too.
+      - name: Install shellcheck
+        run: pipx install shellcheck-py==0.11.0.1
+
+      - name: shellcheck -s sh
+        run: |
+          shellcheck --version
+          git ls-files -z -- '*.sh' | xargs -0 shellcheck -s sh
