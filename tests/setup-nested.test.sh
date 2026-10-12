@@ -165,6 +165,55 @@ check "create: --dir need not match --name" test -f "$WORK/paper/analysis/pyproj
 check "create: no scratch directory left" nothing "$WORK/paper"/.setup-nested.*
 check "create: records nested_dir" grep -qx 'nested_dir = "analysis"' "$WORK/paper/layout.toml"
 
+# ---- in place ---------------------------------------------------------------------------
+
+new_host pair
+g clone -q "$WORK/src-analysis" "$WORK/pair/pair-analysis" || exit 1
+nested_before=$(snapshot "$WORK/pair/pair-analysis")
+
+check "in place: --dir naming a checkout exits 0" run pair --dir pair-analysis
+check "in place: clones nothing" fails grep -q '^Cloning ' "$WORK/out.log"
+check "in place: leaves the checkout byte-for-byte" \
+    same "$(snapshot "$WORK/pair/pair-analysis")" "$nested_before"
+check "in place: gitignores it" same "$(count_entry "$WORK/pair" /pair-analysis/)" 1
+check "in place: records nested_dir" grep -qx 'nested_dir = "pair-analysis"' "$WORK/pair/layout.toml"
+check "in place: records its origin as nested_remote" \
+    grep -q '^nested_remote = ".*src-analysis"$' "$WORK/pair/layout.toml"
+check "in place: syncs the venv" \
+    grep -qx 'sync --extra dev --extra notebooks --extra plotly' "$WORK/uv.log"
+
+new_host lonely
+mkdir "$WORK/lonely/lonely-analysis"
+(cd "$WORK/lonely/lonely-analysis" && g init -q) || exit 1
+host_before=$(snapshot "$WORK/lonely")
+check "in place, no origin: exits non-zero" fails run lonely --dir lonely-analysis
+check "in place, no origin: names the origin" grep -q 'no origin remote' "$WORK/out.log"
+check "in place, no origin: changes nothing" same "$(snapshot "$WORK/lonely")" "$host_before"
+
+new_host named
+g clone -q "$WORK/src-analysis" "$WORK/named/named-analysis" || exit 1
+host_before=$(snapshot "$WORK/named")
+check "in place, with --name: exits non-zero" fails run named --dir named-analysis --name other
+check "in place, with --name: changes nothing" same "$(snapshot "$WORK/named")" "$host_before"
+
+# ---- --python ---------------------------------------------------------------------------
+
+new_host pinned
+check "python: exits 0" run pinned --from "$WORK/src-analysis" --python 3.12
+check "python: writes .python-version in the nested repo" \
+    grep -qx '3.12' "$WORK/pinned/pinned-analysis/.python-version"
+check "python: the host gets none" test ! -e "$WORK/pinned/.python-version"
+
+new_host unpinned
+check "python, not given: exits 0" run unpinned --from "$WORK/src-analysis"
+check "python, not given: writes no .python-version" \
+    test ! -e "$WORK/unpinned/unpinned-analysis/.python-version"
+
+new_host badpin
+host_before=$(snapshot "$WORK/badpin")
+check "python, not a version: exits non-zero" fails run badpin --from "$WORK/src-analysis" --python latest
+check "python, not a version: changes nothing" same "$(snapshot "$WORK/badpin")" "$host_before"
+
 # ---- refusals ---------------------------------------------------------------------------
 
 new_host busy

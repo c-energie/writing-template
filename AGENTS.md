@@ -12,8 +12,8 @@ to keep current — anything tool-specific either points back here or is generat
   with `--no-skills`.
 - `.claude/settings.json` enables Claude Code's `project-workspace@c-energie` plugin,
   auto-updating: the document-workspace setup and adapt skills, e.g.
-  `/project-workspace:adapt-existing-document`. They expect to run from the workspace root (the
-  directory holding `workspace.toml`), not from inside this repo.
+  `/project-workspace:adapt-existing-document`. They act on the document the session is
+  in: this repo, or one picked from a project workspace's `workspace.toml`.
 
 ## What this repository is
 
@@ -96,9 +96,11 @@ document-agnostic; that name has nothing to do with `\section`.
 A document repo may host its analysis repo inside it: `layout.toml` says
 `layout = "writing-hosts-analysis"`, and `nested_dir` is the analysis repo's directory,
 gitignored here (rule 7). `sh setup-nested.sh` creates it from `analysis-template`, adopts
-an existing one with `--from <url>`, or, run with no arguments on a fresh clone, restores
-it from `nested_remote`. Overleaf only sees tracked files, so the nested repo never reaches
-it; `setup-nested.sh` and `layout.toml` sync there and do nothing. SETUP.md has the rest.
+an existing one with `--from <url>`, records a checkout already moved in with `--dir <dir>`,
+or, run with no arguments on a fresh clone, restores it from `nested_remote`. The analysis
+repo's `doc_analysis` finds this one from `layout.toml`; only doc-publish still needs
+`DOC_REPO`. Overleaf only sees tracked files, so the nested repo never reaches it;
+`setup-nested.sh` and `layout.toml` sync there and do nothing. SETUP.md has the rest.
 
 ## Commands
 
