@@ -4,8 +4,10 @@
 #   sh setup-nested.sh                  create one from analysis-template (needs gh)
 #   sh setup-nested.sh --from <src>     adopt one that already exists (anything git clone takes)
 #   sh setup-nested.sh                  with layout.toml present: restore it on a fresh clone
+#   sh setup-nested.sh --dir DIR        record a checkout already moved to DIR, cloning nothing
 #
 #   options: [--dir DIR] [--owner O] [--name N] [--public] [--backend plotly|matplotlib]
+#            [--python VERSION]         written to the analysis repo's .python-version
 #            [-- INIT_ARGS...]          passed through to the analysis repo's init.py
 #
 # Strict POSIX sh, so it runs under dash and under Git Bash on Windows without being a
@@ -15,7 +17,7 @@
 # The nested repo is a separate repo with its own remote. This script records that in
 # layout.toml and gitignores the directory; the host never tracks a file inside it.
 # It never writes DOC_REPO: the analysis repo derives that from layout.toml
-# (c-energie/analysis-template#11), and until it does SETUP.md gives .env as the stopgap.
+# (c-energie/analysis-template#11, its ADR 0002).
 #
 # GH names the gh command (default gh), so the test can make gh missing on a machine
 # that has one. Nothing else reads the environment.
@@ -36,7 +38,7 @@ say() { printf '%s\n' "$*"; }
 die() { printf 'setup-nested.sh: %s\n' "$*" >&2; exit 1; }
 
 usage() {
-    sed -n '2,9s/^# \{0,1\}//p' "$0"
+    sed -n '2,11s/^# \{0,1\}//p' "$0"
 }
 
 # Single-quotes each argument, so a printed rerun command can be pasted back as-is.
@@ -67,7 +69,7 @@ is_empty_dir() {
 
 # ---- arguments --------------------------------------------------------------------------
 
-FROM='' DIR='' OWNER='' NAME='' PUBLIC='' BACKEND=plotly
+FROM='' DIR='' OWNER='' NAME='' PUBLIC='' BACKEND=plotly PYTHON=''
 CREATE_FLAGS=''
 
 value() {
@@ -82,6 +84,7 @@ while [ $# -gt 0 ]; do
         --name)    value "$@"; NAME=$2; CREATE_FLAGS="$CREATE_FLAGS --name"; shift 2 ;;
         --public)  PUBLIC=1; CREATE_FLAGS="$CREATE_FLAGS --public"; shift ;;
         --backend) value "$@"; BACKEND=$2; shift 2 ;;
+        --python)  value "$@"; PYTHON=$2; shift 2 ;;
         -h|--help) usage; exit 0 ;;
         --)        shift; break ;;
         *)         die "unknown argument: $1 (see --help)" ;;
@@ -93,6 +96,12 @@ case $BACKEND in
     plotly|matplotlib) ;;
     *) die "--backend takes plotly or matplotlib, not $BACKEND" ;;
 esac
+
+# A minor or a patch release, as uv python pin takes it: 3.12 or 3.12.4.
+if [ -n "$PYTHON" ] && ! printf '%s
+' "$PYTHON" | grep -Eqx '3\.[0-9]+(\.[0-9]+)?'; then
+    die "--python takes a version such as 3.12 or 3.12.4, not $PYTHON"
+fi
 
 if [ -n "$FROM" ] && [ -n "$CREATE_FLAGS" ]; then
     die "${CREATE_FLAGS# } only apply when creating a repo, not with --from"
@@ -164,6 +173,14 @@ else
     if [ -n "$FROM" ]; then
         MODE=adopt
         DIR=${DIR:-$base-analysis}
+    elif [ -n "$DIR" ] && [ -e "$ROOT/${DIR%/}/.git" ]; then
+        # A checkout already moved into place (a side-by-side pair being nested): record
+        # it as it is. Its origin becomes nested_remote, so it must have one.
+        [ -z "$CREATE_FLAGS" ] ||
+            die "${CREATE_FLAGS# } only apply when creating a repo, and ${DIR%/} is already a checkout"
+        git -C "$ROOT/${DIR%/}" remote get-url origin >/dev/null 2>&1 ||
+            die "${DIR%/} has no origin remote, so no other clone could restore it: push it somewhere and add the origin, then rerun"
+        MODE=in-place
     else
         MODE=create
         NAME=${NAME:-$base-analysis}
@@ -171,7 +188,7 @@ else
     fi
     DIR=${DIR%/}
     check_dir "$DIR"
-    if [ -e "$ROOT/$DIR" ] && ! is_empty_dir "$ROOT/$DIR"; then
+    if [ "$MODE" != in-place ] && [ -e "$ROOT/$DIR" ] && ! is_empty_dir "$ROOT/$DIR"; then
         die "$DIR already exists and is not empty; choose another --dir"
     fi
 fi
@@ -201,7 +218,7 @@ fi
 # ---- clone ------------------------------------------------------------------------------
 
 # An empty directory left by an earlier attempt is replaced rather than refused.
-if is_empty_dir "$ROOT/$DIR"; then
+if [ "$MODE" != in-place ] && is_empty_dir "$ROOT/$DIR"; then
     rmdir "$ROOT/$DIR" || exit 1
 fi
 mkdir -p "$(dirname "$ROOT/$DIR")" || exit 1
@@ -228,6 +245,9 @@ case $MODE in
     adopt|restore)
         say "Cloning $FROM into $DIR ..."
         git clone -- "$FROM" "$ROOT/$DIR" || die "git clone failed; nothing was changed here"
+        ;;
+    in-place)
+        say "Recording the checkout already in $DIR ..."
         ;;
 esac
 
@@ -293,6 +313,15 @@ fi
 init_cmd="uv run --no-project python init.py --backend $BACKEND${1+ $(quote "$@")}"
 sync_cmd="uv sync --extra dev --extra notebooks --extra $BACKEND"
 
+# Before step 3, so init.py's uv run and step 4's venv both get it. Only when asked: the
+# analysis repo may already pin a version of its own.
+if [ -n "$PYTHON" ]; then
+    printf '%s
+' "$PYTHON" > "$ROOT/$DIR/.python-version" ||
+        die "could not write $DIR/.python-version; write $PYTHON there by hand, then rerun"
+    say "Pinned $DIR to Python $PYTHON (.python-version; commit it there)."
+fi
+
 # Step 3: init.py, in the analysis repo's own uv env and attached to the terminal, since it
 # asks questions. No --doc-repo: see the header. If it asks for the document repo anyway,
 # the answer is printed here.
@@ -321,6 +350,6 @@ Commit here, in the document repo:
 Commit in $DIR separately, from inside it; nothing in it is tracked here:
   cd $(quote "$DIR") && git status
 
-Until the analysis repo reads DOC_REPO from layout.toml, set it in $DIR/.env:
-  DOC_REPO=$doc_path
+The analysis repo's doc_analysis finds this one from layout.toml. Only doc-publish still
+needs DOC_REPO: to publish, put DOC_REPO=$doc_path in $DIR/.env.
 EOF

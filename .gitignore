@@ -31,3 +31,8 @@ main.pdf
 .vscode/
 .DS_Store
 Thumbs.db
+
+# ---- per-machine settings ----
+# doc-publish (and DOC_MAIN_TEX) settings for a document with no analysis repo; may hold
+# a Notion token. Never commit it.
+/.env

@@ -160,7 +160,8 @@ Creating needs `git`, `uv` and the GitHub CLI, signed in (`gh auth login`). It m
 `<owner>/<this repo's name>-analysis`, private, owned by whoever owns this repo's `origin`
 on GitHub (else by you), and clones it into a directory of the same name. `--name`,
 `--owner`, `--dir` and `--public` change those; `--backend matplotlib` replaces the default
-`plotly`. Anything after `--` is passed to the analysis repo's `init.py`, which otherwise
+`plotly`. `--python 3.12` (or any `3.x` / `3.x.y`) writes the analysis repo's
+`.python-version` before its venv is built: commit it there. Anything after `--` is passed to the analysis repo's `init.py`, which otherwise
 asks its questions at the terminal. Adopting needs only `git` and `uv`, and takes anything
 `git clone` takes. The source is cloned, never moved or modified.
 
@@ -169,10 +170,13 @@ runs the analysis repo's `init.py` if it still has one, and runs `uv sync` there
 refuses before changing anything if a prerequisite is missing, if the directory exists and
 is not empty, or if `layout.toml` already names a different directory.
 
-**Already have a document repo and an analysis repo side by side?** Run the same command
-in the document repo, with `--from` pointing at the analysis repo's GitHub URL. That is
-the whole move. The old checkout is left where it was. Delete it once anything uncommitted
-in it is pushed, so you do not keep editing a stale copy.
+**Already have a document repo and an analysis repo side by side?** Either run the same
+command in the document repo, with `--from` pointing at the analysis repo's GitHub URL — the
+old checkout is left where it was; delete it once anything uncommitted in it is pushed, so
+you do not keep editing a stale copy — or move the checkout itself into this repo and run
+`sh setup-nested.sh --dir <dir>`. That records it as it is, cloning nothing; it needs an
+`origin` remote, which becomes `nested_remote`. A `DOC_REPO` in its `.env` from the
+side-by-side days still names this repo, which has not moved: leave it for doc-publish.
 
 Once the repo exists there is no rollback, because on GitHub it already does. If `init.py`
 or `uv sync` fails, the script prints the command to rerun. Rerunning the script itself is
@@ -205,14 +209,15 @@ GitHub and put that URL in `layout.toml`.
 
 ### `DOC_REPO` in the nested layout
 
-The analysis repo still finds this one through `DOC_REPO`, which here is simply the parent
-directory. `setup-nested.sh` never writes it. The analysis repo is to derive it from
-this repo's `layout.toml`
-([analysis-template#11](https://github.com/c-energie/analysis-template/issues/11)). Until
-that lands, the analysis repo's `.env` still has to hold it. When its `init.py` asks for
-the document repo, answer with this repo's absolute path (the script prints it). If it did
-not ask, add `DOC_REPO=<absolute path to this repo>` to `<dir>/.env` yourself. That file is
-gitignored in the analysis repo, because the path differs per machine.
+Nothing to set. The analysis repo finds this one as its parent directory, because this
+repo's `layout.toml` names it as `nested_dir` (analysis-template's ADR 0002,
+[#11](https://github.com/c-energie/analysis-template/issues/11)). `setup-nested.sh` never
+writes `DOC_REPO`, and the analysis repo's `init.py` does not ask for it. A `DOC_REPO` in
+the environment or in `<dir>/.env` still wins, with a warning when it disagrees.
+
+doc-publish is the exception: it reads only `DOC_REPO`, not `layout.toml`. To publish from
+the nested repo, put `DOC_REPO=<absolute path to this repo>` in `<dir>/.env` (gitignored
+there): the same directory `layout.toml` names, so nothing disagrees.
 
 ### Overleaf
 
